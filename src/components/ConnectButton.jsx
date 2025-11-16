@@ -20,90 +20,110 @@ export default function ConnectButton({ onAccountChange }) {
   const [chainId, setChainId] = useState(null);
   const [busy, setBusy] = useState(false);
 
+  // Listen for account/chain changes
   useEffect(() => {
     if (!window.ethereum) return;
-    const handleAccounts = (accounts) => {
-      const a = accounts && accounts[0] ? accounts[0] : null;
-      setAccount(a);
-      if (onAccountChange) onAccountChange(a);
-    };
-    const handleChain = (chain) => {
-      setChainId(chain);
-    };
-    window.ethereum.on?.("accountsChanged", handleAccounts);
-    window.ethereum.on?.("chainChanged", handleChain);
 
-    // initial read
+    const handleAccounts = (accounts) => {
+      const a = accounts.length ? accounts[0] : null;
+      setAccount(a);
+      onAccountChange?.(a);
+    };
+
+    const handleChain = (chain) => setChainId(chain);
+
+    window.ethereum.on("accountsChanged", handleAccounts);
+    window.ethereum.on("chainChanged", handleChain);
+
+    // Initial load
     (async () => {
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
+
         const a = await signer.getAddress().catch(() => null);
         setAccount(a);
-        const cid = await provider.send("eth_chainId", []).catch(() => null);
+        onAccountChange?.(a);
+
+        const cid = await provider.send("eth_chainId", []);
         setChainId(cid);
-      } catch (e) {}
+      } catch {}
     })();
 
     return () => {
-      window.ethereum.removeListener?.("accountsChanged", handleAccounts);
-      window.ethereum.removeListener?.("chainChanged", handleChain);
+      window.ethereum.removeListener("accountsChanged", handleAccounts);
+      window.ethereum.removeListener("chainChanged", handleChain);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [onAccountChange]);
 
-  async function switchToTeaSepolia() {
+  // Switch/Add TEA Sepolia
+  const switchToTeaSepolia = async () => {
     if (!window.ethereum) return alert("MetaMask not found");
     setBusy(true);
+
     try {
       await window.ethereum.request({
         method: "wallet_switchEthereumChain",
         params: [{ chainId: TEA_CHAIN_ID_HEX }]
       });
     } catch (err) {
-      // If the chain has not been added, error code 4902 (MetaMask)
-      if (err?.code === 4902 || /Unrecognized chain/i.test(err?.message || "")) {
+      if (err?.code === 4902) {
         try {
           await window.ethereum.request({
             method: "wallet_addEthereumChain",
             params: [TEA_PARAMS]
           });
         } catch (e) {
-          console.error("add chain failed", e);
-          alert("Failed to add Tea Sepolia network: " + (e?.message || e));
+          alert("Failed to add Tea Sepolia network");
         }
-      } else {
-        console.error("switch chain failed", err);
       }
-    } finally {
-      setBusy(false);
     }
-  }
+    setBusy(false);
+  };
 
-  async function connect() {
+  // Connect wallet
+  const connect = async () => {
     if (!window.ethereum) return alert("MetaMask not found");
+
     try {
-      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-      const a = accounts && accounts[0] ? accounts[0] : null;
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts"
+      });
+      const a = accounts[0] || null;
       setAccount(a);
-      if (onAccountChange) onAccountChange(a);
+      onAccountChange?.(a);
     } catch (e) {
       console.error(e);
     }
-  }
+  };
 
-  function disconnect() {
-    // cannot programmatically disconnect MetaMask — just clear UI state
-    setAccount(null);
-    if (onAccountChange) onAccountChange(null);
-  }
+  // 🔥 CHANGE WALLET (request user to pick a different account)
+  const changeWallet = async () => {
+    if (!window.ethereum) return alert("MetaMask not found");
+
+    try {
+      await window.ethereum.request({
+        method: "wallet_requestPermissions",
+        params: [{ eth_accounts: {} }]
+      });
+
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts"
+      });
+
+      const a = accounts[0] || null;
+      setAccount(a);
+      onAccountChange?.(a);
+    } catch (e) {
+      console.error("Change wallet failed", e);
+    }
+  };
 
   return (
     <div className="flex items-center gap-3">
       <button
         onClick={switchToTeaSepolia}
         className="text-xs px-3 py-1 rounded-md bg-slate-700/40 hover:bg-slate-700/60 transition"
-        title="Switch network to Tea Sepolia"
         disabled={busy}
       >
         Switch to TEA Sepolia
@@ -112,11 +132,13 @@ export default function ConnectButton({ onAccountChange }) {
       {account ? (
         <div className="flex items-center gap-2">
           <div className="text-sm text-slate-300">{truncate(account)}</div>
+
+          {/* NEW: CHANGE WALLET */}
           <button
-            onClick={disconnect}
-            className="text-sm px-3 py-1 rounded-md bg-rose-600 hover:bg-rose-700 transition"
+            onClick={changeWallet}
+            className="text-sm px-3 py-1 rounded-md bg-sky-500 hover:bg-sky-600 transition"
           >
-            Disconnect
+            Change Wallet
           </button>
         </div>
       ) : (
