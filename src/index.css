@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ------------------------------------------
+   TEA BRAND FONT
+------------------------------------------- */
+.font-tea {
+  font-family: 'Clash Grotesk', 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+/* ------------------------------------------
+   GLOBAL BASE
+------------------------------------------- */
+html, body, #root {
+  height: 100%;
+  background: #0b1220;
+  font-family: 'Space Grotesk', sans-serif;
+  color: white;
+  margin: 0;
+  padding: 0;
+}
+
+/* Default cursor (BIASANYA) */
+body {
+  cursor: auto !important;
+}
+
+/* ------------------------------------------
+   CUSTOM TEA CURSOR - ONLY on Vote Buttons
+------------------------------------------- */
+.vote-button {
+  cursor: url("/tea-cursor.ico"),
+          url("/tea-cursor.png") 0 0,
+          pointer !important;
+}
+
+/* ------------------------------------------
+   TEA BACKGROUND IMAGE
+------------------------------------------- */
+.bg-tea-image {
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  background-image: url("/tea-bg.webp");
+  background-size: cover;
+  background-position: center;
+  opacity: 0.12;
+  filter: blur(2px) saturate(0.9);
+}
+
+/* ------------------------------------------
+   AURORA OVERLAY
+------------------------------------------- */
+.aurora-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background: radial-gradient(800px circle at 20% 10%, rgba(16,185,129,0.18), transparent 60%),
+              radial-gradient(800px circle at 80% 30%, rgba(147,51,234,0.20), transparent 70%),
+              radial-gradient(600px circle at 50% 80%, rgba(59,130,246,0.14), transparent 70%);
+  filter: blur(48px);
+}
+
+/* ------------------------------------------
+   NOISE OVERLAY
+------------------------------------------- */
+.noise-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: url("https://upload.wikimedia.org/wikipedia/commons/7/78/Noise_texture.png");
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+}
+
+/* ------------------------------------------
+   SELECTION COLOR
+------------------------------------------- */
+::selection {
+  background: #10b981;
+  color: black;
+}
+
+/* ------------------------------------------
+   MOBILE RESPONSIVE
+------------------------------------------- */
+@media (max-width: 640px) {
+  h1, h2, h3 {
+    line-height: 1.2 !important;
+  }
+
+  .card {
+    padding: 16px !important;
+  }
+
+  .btn-primary,
+  .btn-danger {
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+    font-size: 1.1rem !important;
+  }
+
+  .bg-tea-image {
+    opacity: 0.18;
+  }
+}
